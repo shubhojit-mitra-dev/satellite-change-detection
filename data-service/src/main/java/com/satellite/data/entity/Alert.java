@@ -34,6 +34,7 @@ public class Alert {
     @Column(name = "message", columnDefinition = "TEXT")
     private String message;
 
+    @Builder.Default
     @Column(name = "acknowledged")
     private Boolean acknowledged = false;
 
