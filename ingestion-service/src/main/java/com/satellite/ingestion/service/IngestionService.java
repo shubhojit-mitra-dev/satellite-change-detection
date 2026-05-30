@@ -41,7 +41,7 @@ public class IngestionService {
             job = ingestJobRepository.save(job);
             log.info("Updated job {} to PROCESSING", job.getId());
 
-            String rawJson = geeScriptRunner.runScript(aoi, date1, date2);
+            String rawJson = geeScriptRunner.runScript(fieldId.toString(), aoi, date1, date2);
             log.info("Received JSON output from GEE script for job {}", job.getId());
 
             // Parse that JSON string using Jackson ObjectMapper to extract the delta array
