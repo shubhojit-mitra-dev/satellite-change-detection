@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.post("/", response_model=ClassifyResponse)
+@router.post("", response_model=ClassifyResponse)
 async def classify_pixels(request: ClassifyRequest):
     try:
         result = classify_deltas(request.delta_array)
