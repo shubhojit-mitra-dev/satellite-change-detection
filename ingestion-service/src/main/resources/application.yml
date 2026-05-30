@@ -21,7 +21,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO:update}
+      ddl-auto: ${DDL_AUTO:validate}
     properties:
       hibernate:
         dialect: ${DB_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
