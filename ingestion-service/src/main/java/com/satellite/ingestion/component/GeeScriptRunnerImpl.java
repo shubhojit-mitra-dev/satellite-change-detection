@@ -34,6 +34,7 @@ public class GeeScriptRunnerImpl implements GeeScriptRunner {
 
         ProcessBuilder pb = new ProcessBuilder(command);
         pb.redirectErrorStream(false);
+        pb.directory(new java.io.File(geeConfig.getScriptPath()).getParentFile());
 
         log.info("Starting process builder for GEE script...");
         Process process = pb.start();
