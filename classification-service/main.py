@@ -1,6 +1,12 @@
-def main():
-    print("Hello from classification-service!")
+from fastapi import FastAPI
+
+app = FastAPI(
+    title="Classification Service",
+    description="Satellite change classification via Google Earth Engine",
+    version="0.1.0",
+)
 
 
-if __name__ == "__main__":
-    main()
+@app.get("/health")
+def health():
+    return {"status": "UP"}
