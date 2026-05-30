@@ -30,6 +30,7 @@ public class SatellitePass {
     @Column(name = "pass_date", nullable = false)
     private LocalDate passDate;
 
+    @Builder.Default
     @Column(name = "satellite")
     private String satellite = "SENTINEL-2";
 
