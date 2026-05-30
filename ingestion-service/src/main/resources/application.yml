@@ -15,6 +15,10 @@ spring:
       minimum-idle: ${DB_POOL_MIN:2}
       connection-timeout: ${DB_CONN_TIMEOUT:30000}
 
+  flyway:
+    baseline-on-migrate: true
+    baseline-version: 0
+
   jpa:
     hibernate:
       ddl-auto: ${DDL_AUTO:update}
@@ -38,3 +42,10 @@ kafka:
 gee:
   script-path: ${GEE_SCRIPT_PATH:/home/blackknight05/Desktop/satellite-change-detection/classification-service/gee_fetch.py}
   python-path: ${PYTHON_VENV_PATH:/home/blackknight05/Desktop/satellite-change-detection/classification-service/.venv/bin/python}
+
+# Logging Configuration
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE:INFO}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_BINDER:WARN}
