@@ -1,0 +1,21 @@
+[project]
+name = "classification-service"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "earthengine-api>=1.7.28",
+    "fastapi>=0.136.3",
+    "numpy>=2.2.6",
+    "pydantic>=2.13.4",
+    "scikit-learn>=1.7.2",
+    "uvicorn[standard]>=0.48.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.0.3",
+    "pytest-asyncio>=1.4.0",
+]
