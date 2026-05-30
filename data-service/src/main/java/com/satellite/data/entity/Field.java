@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.locationtech.jts.geom.Geometry;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -32,6 +33,7 @@ public class Field {
     @Column(name = "name")
     private String name;
 
+    @JsonIgnore
     @Column(name = "boundary", columnDefinition = "geometry(Polygon,4326)")
     private Geometry boundary;
 
