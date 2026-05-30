@@ -29,7 +29,7 @@ class GEEService:
         image = collection.first()
         ndvi = image.normalizedDifference(["B8", "B4"])
         
-        samples = ndvi.sample(region=aoi, numPixels=400, scale=10)
+        samples = ndvi.sample(region=aoi, numPixels=400, scale=50, geometries=False)
         values = samples.aggregate_array("nd").getInfo()
         
         return cls.pad_or_trim(values, 400)
