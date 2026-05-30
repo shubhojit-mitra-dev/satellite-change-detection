@@ -32,6 +32,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+from app.api.endpoints import gee
+app.include_router(gee.router, prefix=settings.API_V1_STR + "/gee", tags=["Google Earth Engine"])
+
 @app.get("/health")
 def health():
     return {"status": "UP", "gee_project": settings.GOOGLE_CLOUD_PROJECT_ID}
