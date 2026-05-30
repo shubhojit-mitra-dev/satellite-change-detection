@@ -29,8 +29,13 @@ class GEEService:
         image = collection.first()
         ndvi = image.normalizedDifference(["B8", "B4"])
         
-        samples = ndvi.sample(region=aoi, numPixels=400, scale=50, geometries=False)
-        values = samples.aggregate_array("nd").getInfo()
+        result = ndvi.reduceRegion(
+            reducer=ee.Reducer.toList(),
+            geometry=aoi,
+            scale=50,
+            maxPixels=1e6
+        )
+        values = result.get("nd").getInfo()
         
         return cls.pad_or_trim(values, 400)
 
