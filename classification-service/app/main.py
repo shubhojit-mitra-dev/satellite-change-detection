@@ -32,8 +32,9 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-from app.api.endpoints import gee
+from app.api.endpoints import gee, classify
 app.include_router(gee.router, prefix=settings.API_V1_STR + "/gee", tags=["Google Earth Engine"])
+app.include_router(classify.router, prefix="/classify", tags=["Classification"])
 
 @app.get("/health")
 def health():
