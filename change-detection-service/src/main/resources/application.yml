@@ -1,0 +1,56 @@
+server:
+  port: ${PORT:8082}
+
+spring:
+  application:
+    name: change-detection-service
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/satdb}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:satpass}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:15}
+      minimum-idle: ${DB_POOL_MIN:2}
+      connection-timeout: ${DB_CONN_TIMEOUT:30000}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${DDL_AUTO:validate}
+    properties:
+      hibernate:
+        dialect: ${DB_DIALECT:org.hibernate.dialect.PostgreSQLDialect}
+    show-sql: ${SHOW_SQL:false}
+  
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:change-detection-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "java.util, java.lang"
+        spring.json.value.default.type: "java.util.HashMap"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+kafka:
+  topics:
+    ingest: satellite.ingest
+    change: satellite.change
+
+classification:
+  service:
+    url: ${CLASSIFICATION_SERVICE_URL:http://localhost:8000}
+  threshold: ${CLASSIFICATION_THRESHOLD:0.15}
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    org.hibernate.SQL: ${LOG_LEVEL_HIBERNATE:INFO}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_BINDER:WARN}
