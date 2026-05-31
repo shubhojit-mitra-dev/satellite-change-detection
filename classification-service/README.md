@@ -1,8 +1,8 @@
 # Classification Service 🛰️
 
-The `classification-service` is a microservice built with FastAPI and Python that bridges the gap between the Satellite Change Detection System and **Google Earth Engine (GEE)**. It is responsible for systematically sampling Earth Engine satellite imagery, computing Normalized Difference Vegetation Index (NDVI) matrices, and extracting pixel deltas to identify environmental changes over time.
-
-This service functions both as a standalone API and as a command-line utility invoked by the `ingestion-service`.
+The `classification-service` is a microservice built with FastAPI and Python that bridges the gap between the Satellite Change Detection System and **Google Earth Engine (GEE)**. It serves two distinct and critical roles in the pipeline:
+1. **Data Ingestion (CLI)**: Systematically sampling Earth Engine satellite imagery, computing Normalized Difference Vegetation Index (NDVI) matrices, and extracting pixel deltas to identify environmental changes over time.
+2. **ML Inference (REST API)**: Acting as a statistical engine to classify the pixel deltas into actionable crop health insights (growth, stress, no-change).
 
 ---
 
@@ -56,7 +56,7 @@ A pre-built Docker image will be available via DockerHub.
 
 ## 💻 Usage
 
-### 1. Command-Line Interface (Used by Ingestion Service)
+### 1. Data Ingestion (CLI Tool)
 
 The service provides a CLI wrapper (`gee_fetch.py`) that the `ingestion-service` calls via Java's `ProcessBuilder`.
 
@@ -89,18 +89,46 @@ When orchestrating this from the `ingestion-service`, the following absolute pat
 - **Python Binary**: `/home/blackknight05/Desktop/satellite-change-detection/classification-service/.venv/bin/python`
 - **Script Path**: `/home/blackknight05/Desktop/satellite-change-detection/classification-service/gee_fetch.py`
 
-### 2. FastAPI Server
+---
 
-You can also run the microservice natively as a REST API.
+### 2. ML Classification (REST API)
+
+The service must be run natively as a REST API for the `change-detection-service` to query it.
 
 **Start the Server:**
 ```bash
 uv run uvicorn app.main:app --port 8000 --reload
 ```
 
-**Endpoints:**
+#### Endpoints:
+
 - `GET /health` : Verify system health and GEE project initialization.
 - `POST /api/v1/gee/calculate-delta` : Submit JSON bounds to compute and return NDVI deltas.
+- `POST /classify` : Accepts an array of NDVI delta pixels and classifies crop health.
+
+#### The `/classify` Endpoint Details
+Used by the `change-detection-service` orchestrator to calculate insights.
+
+**Example Request**:
+```bash
+curl -X POST http://localhost:8000/classify \
+-H "Content-Type: application/json" \
+-d '{
+  "fieldId": "84d0086e-1c2c-4e66-b7e1-6853f7c317b3",
+  "deltaArray": [0.1328, -0.1591, 0.3844, -0.052, 0.012]
+}'
+```
+
+**Successful Response** (`200 OK`):
+```json
+{
+  "crop_growth_pct": 40.0,
+  "crop_stress_pct": 20.0,
+  "significant_change_pct": 60.0,
+  "no_change_pct": 40.0,
+  "pixelLabels": ["GROWTH", "STRESS", "GROWTH", "NO_CHANGE", "NO_CHANGE"]
+}
+```
 
 ---
 
@@ -133,11 +161,14 @@ classification-service/
     ├── main.py                 # FastAPI application factory & Lifespan
     ├── api/
     │   └── endpoints/
-    │       └── gee.py          # Route definitions
+    │       ├── gee.py          # Legacy GEE Route definitions
+    │       └── classify.py     # ML Classification logic route
     ├── core/
     │   └── config.py           # Pydantic BaseSettings loading
     ├── schemas/
-    │   └── gee_schema.py       # Pydantic models for validation
+    │   ├── gee_schema.py       # Pydantic models for GEE
+    │   └── classify_schema.py  # Pydantic models for Classification
     └── services/
+        ├── classifier.py       # ML Classification logic service
         └── gee_service.py      # Earth Engine logic and systematic grid reduction
 ```
