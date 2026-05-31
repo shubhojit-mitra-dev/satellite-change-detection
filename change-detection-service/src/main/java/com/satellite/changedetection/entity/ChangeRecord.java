@@ -14,6 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -34,10 +35,10 @@ public class ChangeRecord {
     private UUID fieldId;
 
     @Column(name = "date1")
-    private String date1;
+    private LocalDate date1;
 
     @Column(name = "date2")
-    private String date2;
+    private LocalDate date2;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "delta_array", columnDefinition = "jsonb")
