@@ -42,7 +42,7 @@ spring:
           predicates:
             - Path=/api/data/**
           filters:
-            - StripPrefix=1
+            - StripPrefix=2
 
 logging:
   level:
