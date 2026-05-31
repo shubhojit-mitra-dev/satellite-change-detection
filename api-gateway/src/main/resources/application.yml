@@ -1,0 +1,49 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+      routes:
+        - id: ingestion-service
+          uri: ${INGESTION_SERVICE_URL:http://localhost:8081}
+          predicates:
+            - Path=/api/ingest/**
+          filters:
+            - StripPrefix=1
+        - id: change-detection-service
+          uri: ${CHANGE_DETECTION_SERVICE_URL:http://localhost:8082}
+          predicates:
+            - Path=/api/change/**
+          filters:
+            - StripPrefix=1
+        - id: classification-service
+          uri: ${CLASSIFICATION_SERVICE_URL:http://localhost:8000}
+          predicates:
+            - Path=/api/classify/**
+          filters:
+            - StripPrefix=1
+        - id: alert-service
+          uri: ${ALERT_SERVICE_URL:http://localhost:8083}
+          predicates:
+            - Path=/api/alerts/**
+          filters:
+            - StripPrefix=1
+        - id: data-service
+          uri: ${DATA_SERVICE_URL:http://localhost:8084}
+          predicates:
+            - Path=/api/data/**
+          filters:
+            - StripPrefix=2
+
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
