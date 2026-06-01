@@ -4,128 +4,12 @@ import {
   Alert,
   ScrollView,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { acknowledgeAlert, getAlerts } from '../service/api';
 import type { AlertRecord } from './types';
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-const SEVERITY_STYLES: Record<string, { bg: string; text: string }> = {
-  CRITICAL: { bg: '#991b1b', text: '#fecaca' },
-  POSITIVE: { bg: '#14532d', text: '#bbf7d0' },
-  MODERATE: { bg: '#78350f', text: '#fde68a' },
-};
-
-function severityStyle(severity: string) {
-  return SEVERITY_STYLES[severity.toUpperCase()] ?? { bg: '#1e293b', text: '#94a3b8' };
-}
-
-function formatDate(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString(undefined, {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
-
-// ─── Alert card ───────────────────────────────────────────────────────────────
-
-type AlertCardProps = {
-  alert: AlertRecord;
-  onAcknowledge: (id: string) => void;
-  acknowledging: boolean;
-};
-
-function AlertCard({ alert, onAcknowledge, acknowledging }: AlertCardProps) {
-  const badge = severityStyle(alert.severity);
-
-  return (
-    <View
-      style={{
-        backgroundColor: '#1e293b',
-        borderRadius: 12,
-        padding: 16,
-        marginHorizontal: 16,
-        marginVertical: 8,
-        borderWidth: 1,
-        borderColor: '#334155',
-      }}
-    >
-      {/* Severity badge + timestamp row */}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 10,
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: badge.bg,
-            borderRadius: 20,
-            paddingHorizontal: 10,
-            paddingVertical: 3,
-          }}
-        >
-          <Text style={{ color: badge.text, fontSize: 11, fontWeight: '700', letterSpacing: 0.5 }}>
-            {alert.severity.toUpperCase()}
-          </Text>
-        </View>
-        <Text style={{ color: '#475569', fontSize: 11 }}>
-          {formatDate(alert.createdAt)}
-        </Text>
-      </View>
-
-      {/* Message */}
-      <Text style={{ color: '#cbd5e1', fontSize: 14, lineHeight: 20, marginBottom: 12 }}>
-        {alert.message}
-      </Text>
-
-      {/* Acknowledge row */}
-      {alert.acknowledged ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <View
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: 4,
-              backgroundColor: '#475569',
-            }}
-          />
-          <Text style={{ color: '#475569', fontSize: 12 }}>Acknowledged</Text>
-        </View>
-      ) : (
-        <TouchableOpacity
-          onPress={() => onAcknowledge(alert.id)}
-          disabled={acknowledging}
-          activeOpacity={0.75}
-          style={{
-            backgroundColor: acknowledging ? '#164e63' : '#0e7490',
-            borderRadius: 8,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            alignSelf: 'flex-start',
-            opacity: acknowledging ? 0.6 : 1,
-          }}
-        >
-          <Text style={{ color: '#fff', fontSize: 13, fontWeight: '600' }}>
-            {acknowledging ? 'Acknowledging…' : 'Acknowledge'}
-          </Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-}
+import { AlertCard } from './components/AlertCard';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
@@ -163,7 +47,7 @@ export default function AlertsScreen() {
     try {
       setAcknowledgingId(alertId);
       await acknowledgeAlert(alertId);
-      // Optimistically flip the flag locally before re-fetching
+      // Optimistically flip the flag locally
       setAlerts((prev) =>
         prev.map((a) => (a.id === alertId ? { ...a, acknowledged: true } : a)),
       );
@@ -206,13 +90,7 @@ export default function AlertsScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Summary pill */}
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'center',
-              marginBottom: 8,
-            }}
-          >
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginBottom: 8 }}>
             <View
               style={{
                 backgroundColor: '#1e293b',

@@ -30,3 +30,9 @@ export type BarProps = {
   value: number;
   color: string;
 };
+
+export type AlertCardProps = {
+  alert: AlertRecord;
+  onAcknowledge: (id: string) => void;
+  acknowledging: boolean;
+};

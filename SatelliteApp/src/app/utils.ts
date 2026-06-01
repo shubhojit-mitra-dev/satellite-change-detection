@@ -99,3 +99,31 @@ export function buildClassificationBars(stats: GridCells['stats']): BarProps[] {
     { label: 'Stable',          value: stats.stable,   color: '#475569' },
   ];
 }
+
+// ─── Alert helpers ────────────────────────────────────────────────────────────
+
+const SEVERITY_STYLES: Record<string, { bg: string; text: string }> = {
+  CRITICAL: { bg: '#991b1b', text: '#fecaca' },
+  POSITIVE: { bg: '#14532d', text: '#bbf7d0' },
+  MODERATE: { bg: '#78350f', text: '#fde68a' },
+};
+
+/** Returns background + text colours for a given severity string. */
+export function severityStyle(severity: string): { bg: string; text: string } {
+  return SEVERITY_STYLES[severity.toUpperCase()] ?? { bg: '#1e293b', text: '#94a3b8' };
+}
+
+/** Formats an ISO timestamp into a human-readable local date/time string. */
+export function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString(undefined, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return iso;
+  }
+}
