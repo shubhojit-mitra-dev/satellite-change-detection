@@ -9,25 +9,8 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { getAlerts, getChangeMap } from '../service/api';
+import type { AlertRecord, BarProps, ChangeRecord, GridProps } from './types';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-type ChangeRecord = {
-  id: string;
-  fieldId: string;
-  date1: string;
-  date2: string;
-  deltaArray: string; // JSON string of number[]
-  createdAt: string;
-};
-
-type AlertRecord = {
-  id: string;
-  fieldId: string;
-  classification: string; // e.g. "HEALTHY", "STRESSED", "CRITICAL"
-  percentage: number;
-  createdAt: string;
-};
 
 // ─── Color helpers ────────────────────────────────────────────────────────────
 
@@ -50,8 +33,6 @@ function deltaColor(delta: number): string {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
-
-type GridProps = { cells: string[]; label: string };
 
 function NdviGrid({ cells, label }: GridProps) {
   return (
@@ -87,8 +68,6 @@ function NdviGrid({ cells, label }: GridProps) {
     </View>
   );
 }
-
-type BarProps = { label: string; value: number; color: string };
 
 function ClassificationBar({ label, value, color }: BarProps) {
   const pct = Math.min(100, Math.max(0, value));
