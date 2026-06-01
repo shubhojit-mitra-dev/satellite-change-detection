@@ -16,8 +16,8 @@ export function ndviColor(ndvi: number): string {
 
 /** Map a delta value to a hex colour string */
 export function deltaColor(delta: number): string {
-  if (delta > 0.15) return '#16a34a';           // growth
-  if (delta < -0.15) return '#dc2626';          // stress
+  if (delta > 0.15) return '#16a34a';            // growth
+  if (delta < -0.15) return '#dc2626';           // stress
   if (Math.abs(delta) >= 0.10) return '#f59e0b'; // amber – moderate change
   return '#475569';                              // slate – stable
 }
@@ -85,6 +85,7 @@ export function buildGridCells(deltaArray: number[]): GridCells {
   };
 }
 
+// ─── Classification bar builder ───────────────────────────────────────────────
 
 /**
  * Returns bar-chart data for the classification breakdown section.

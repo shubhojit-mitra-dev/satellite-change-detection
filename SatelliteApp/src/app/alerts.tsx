@@ -8,8 +8,8 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import { acknowledgeAlert, getAlerts } from '../service/api';
-import type { AlertRecord } from './types';
-import { AlertCard } from './components/AlertCard';
+import type { AlertRecord } from '../types';
+import { AlertCard } from '../components/AlertCard';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 

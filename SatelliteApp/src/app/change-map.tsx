@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { getAlerts, getChangeMap } from '../service/api';
-import type { AlertRecord, ChangeRecord } from './types';
-import { NdviGrid } from './components/NdviGrid';
-import { ClassificationBar } from './components/ClassificationBar';
-import { buildClassificationBars, buildGridCells } from './utils';
+import type { AlertRecord, ChangeRecord } from '../types';
+import { NdviGrid } from '../components/NdviGrid';
+import { ClassificationBar } from '../components/ClassificationBar';
+import { buildClassificationBars, buildGridCells } from '../utils';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
