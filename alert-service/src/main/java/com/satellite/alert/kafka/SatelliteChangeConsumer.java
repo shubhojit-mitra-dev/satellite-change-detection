@@ -1,12 +1,15 @@
 package com.satellite.alert.kafka;
 
 import com.satellite.alert.config.KafkaTopicsConfig;
+import com.satellite.alert.entity.Alert;
 import com.satellite.alert.service.AlertService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -17,6 +20,7 @@ public class SatelliteChangeConsumer {
 
     private final AlertService alertService;
     private final KafkaTopicsConfig kafkaTopicsConfig;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @KafkaListener(topics = "#{kafkaTopicsConfig.change}", groupId = "alert-group")
     public void processChangePayload(Map<String, Object> payload) {
@@ -47,8 +51,20 @@ public class SatelliteChangeConsumer {
             
             log.info("Generated alert message: {}", message);
 
-            // 3. Create the alert
-            alertService.createAlert(UUID.fromString(fieldId), severity, message);
+            // 3. Create the alert and capture the saved entity
+            Alert savedAlert = alertService.createAlert(UUID.fromString(fieldId), severity, message);
+
+            // 4. Publish alert event to satellite.alerts
+            Map<String, Object> alertPayload = new HashMap<>();
+            alertPayload.put("alertId",  savedAlert.getId().toString());
+            alertPayload.put("fieldId",  fieldId);
+            alertPayload.put("severity", severity);
+            alertPayload.put("message",  message);
+
+            kafkaTemplate.send(kafkaTopicsConfig.getAlerts(), fieldId, alertPayload);
+
+            log.info("Published alert event for alertId: {} on topic: {}",
+                     savedAlert.getId(), kafkaTopicsConfig.getAlerts());
             
             log.info("Successfully processed change event and created alert for fieldId: {}", fieldId);
 

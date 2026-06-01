@@ -33,6 +33,11 @@ spring:
       properties:
         spring.json.trusted.packages: "java.util, java.lang"
         spring.json.value.default.type: "java.util.HashMap"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
 
 kafka:
   topics:
