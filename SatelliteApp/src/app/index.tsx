@@ -35,11 +35,11 @@ export default function FieldListScreen() {
     try {
       // Triggering with hardcoded Tumkur coords for the demo
       await triggerIngestion(
-        '1', // Hardcoded Tumkur field ID
-        76.0, 
-        13.0, 
-        77.0, 
-        14.0, 
+        '84d0086e-1c2c-4e66-b7e1-6853f7c317b3', // Tumkur field ID
+        76.9,
+        13.3,
+        77.1,
+        13.5,
         '2024-01-06',
         '2024-01-21'
       );
@@ -58,7 +58,7 @@ export default function FieldListScreen() {
         className="bg-slate-800 rounded-xl p-4 mx-4 my-2 flex-row justify-between items-center"
         onPress={() =>
           router.push({
-            pathname: '/change-map',
+            pathname: '/change-map' as any,
             params: {
               fieldId: item.id,
               fieldName: item.name,
