@@ -16,6 +16,10 @@ import java.util.UUID;
 public class AlertService {
 
     private final AlertRepository alertRepository;
+    private final FcmService fcmService;
+
+    // Hardcode your device's FCM token for the demo
+    private static final String DEMO_FCM_TOKEN = "YOUR_DEVICE_FCM_TOKEN_HERE";
 
     public Alert createAlert(UUID fieldId, String severity, String message) {
         log.info("Creating new alert for fieldId: {} with severity: {}", fieldId, severity);
@@ -25,7 +29,12 @@ public class AlertService {
                 .message(message)
                 .build();
         
-        return alertRepository.save(alert);
+        Alert savedAlert = alertRepository.save(alert);
+        
+        // Send push notification
+        fcmService.sendAlertNotification(DEMO_FCM_TOKEN, severity, message);
+        
+        return savedAlert;
     }
 
     public List<Alert> getAlertsByFieldId(UUID fieldId) {
