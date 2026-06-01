@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 // Use 10.0.2.2 for Android emulator to hit host localhost, otherwise use localhost
-const BASE_URL = Platform.OS === 'android' ? 'http://10.0.2.2:8080' : 'http://localhost:8080';
+const BASE_URL = Platform.OS === 'android' ? 'http://192.168.1.6:8080' : 'http://localhost:8080';
 
 export async function getFields() {
   try {
