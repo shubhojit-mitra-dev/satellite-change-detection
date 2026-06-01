@@ -1,4 +1,4 @@
-import type { AlertRecord, BarProps } from './types';
+import type { BarProps } from './types';
 
 // ─── Grid constants ───────────────────────────────────────────────────────────
 
@@ -85,35 +85,17 @@ export function buildGridCells(deltaArray: number[]): GridCells {
   };
 }
 
-// ─── Classification bar builder ───────────────────────────────────────────────
-
-const CLASSIFICATION_COLOR_MAP: Record<string, string> = {
-  HEALTHY:  '#16a34a',
-  STRESSED: '#dc2626',
-  CRITICAL: '#f97316',
-  MODERATE: '#f59e0b',
-};
 
 /**
  * Returns bar-chart data for the classification breakdown section.
- * Falls back to delta-derived stats when no alert records are present.
+ * Always derived from the delta array — real alert records carry no
+ * percentage data so we don't use them here.
  */
-export function buildClassificationBars(
-  alerts: AlertRecord[],
-  stats: GridCells['stats'],
-): BarProps[] {
-  if (alerts.length === 0) {
-    return [
-      { label: 'Crop Growth',    value: stats.growth,   color: '#16a34a' },
-      { label: 'Crop Stress',    value: stats.stress,   color: '#dc2626' },
-      { label: 'Moderate Change', value: stats.moderate, color: '#f59e0b' },
-      { label: 'Stable',         value: stats.stable,   color: '#475569' },
-    ];
-  }
-
-  return alerts.map((a) => ({
-    label: a.classification,
-    value: a.percentage,
-    color: CLASSIFICATION_COLOR_MAP[a.classification.toUpperCase()] ?? '#94a3b8',
-  }));
+export function buildClassificationBars(stats: GridCells['stats']): BarProps[] {
+  return [
+    { label: 'Crop Growth',     value: stats.growth,   color: '#16a34a' },
+    { label: 'Crop Stress',     value: stats.stress,   color: '#dc2626' },
+    { label: 'Moderate Change', value: stats.moderate, color: '#f59e0b' },
+    { label: 'Stable',          value: stats.stable,   color: '#475569' },
+  ];
 }

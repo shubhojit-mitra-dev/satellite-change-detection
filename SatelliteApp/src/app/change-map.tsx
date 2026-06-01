@@ -81,8 +81,8 @@ export default function ChangeMapScreen() {
 
   // ── Alert-based classification (overrides delta stats if data available) ────
   const classificationBars = useMemo(
-    () => buildClassificationBars(alerts, stats),
-    [alerts, stats],
+    () => buildClassificationBars(stats),
+    [stats],
   );
 
   // ── Render ──────────────────────────────────────────────────────────────────

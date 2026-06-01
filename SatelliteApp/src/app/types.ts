@@ -12,8 +12,9 @@ export type ChangeRecord = {
 export type AlertRecord = {
   id: string;
   fieldId: string;
-  classification: string; // e.g. "HEALTHY", "STRESSED", "CRITICAL"
-  percentage: number;
+  severity: string;      // "POSITIVE", "CRITICAL", "MODERATE"
+  message: string;
+  acknowledged: boolean;
   createdAt: string;
 };
 
