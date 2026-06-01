@@ -9,106 +9,13 @@ import {
 } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { getAlerts, getChangeMap } from '../service/api';
-import type { AlertRecord, BarProps, ChangeRecord, GridProps } from './types';
-
-
-// ─── Color helpers ────────────────────────────────────────────────────────────
-
-const GRID_SIZE = 20; // 20×20 grid
-const CELL_PX = 14;  // pixels per cell
-
-/** Map a simulated NDVI value to a colour */
-function ndviColor(ndvi: number): string {
-  if (ndvi > 0.6) return '#16a34a';  // green – healthy
-  if (ndvi >= 0.3) return '#ca8a04'; // yellow – moderate
-  return '#dc2626';                   // red – stressed
-}
-
-/** Map a delta value to a colour */
-function deltaColor(delta: number): string {
-  if (delta > 0.15) return '#16a34a';  // growth
-  if (delta < -0.15) return '#dc2626'; // stress
-  if (Math.abs(delta) >= 0.10) return '#f59e0b'; // amber – moderate change
-  return '#475569';                    // slate – stable
-}
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
-
-function NdviGrid({ cells, label }: GridProps) {
-  return (
-    <View style={{ alignItems: 'center', flex: 1 }}>
-      <Text
-        style={{
-          color: '#94a3b8',
-          fontSize: 11,
-          fontWeight: '600',
-          letterSpacing: 0.5,
-          marginBottom: 6,
-          textTransform: 'uppercase',
-        }}
-      >
-        {label}
-      </Text>
-      <View
-        style={{
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          width: GRID_SIZE * CELL_PX,
-          borderRadius: 6,
-          overflow: 'hidden',
-        }}
-      >
-        {cells.map((color, i) => (
-          <View
-            key={i}
-            style={{ width: CELL_PX, height: CELL_PX, backgroundColor: color }}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-function ClassificationBar({ label, value, color }: BarProps) {
-  const pct = Math.min(100, Math.max(0, value));
-  return (
-    <View style={{ marginBottom: 10 }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          marginBottom: 4,
-        }}
-      >
-        <Text style={{ color: '#e2e8f0', fontSize: 13, fontWeight: '600' }}>
-          {label}
-        </Text>
-        <Text style={{ color, fontSize: 13, fontWeight: '700' }}>
-          {pct.toFixed(1)}%
-        </Text>
-      </View>
-      <View
-        style={{
-          height: 8,
-          backgroundColor: '#1e293b',
-          borderRadius: 4,
-          overflow: 'hidden',
-        }}
-      >
-        <View
-          style={{
-            height: '100%',
-            width: `${pct}%`,
-            backgroundColor: color,
-            borderRadius: 4,
-          }}
-        />
-      </View>
-    </View>
-  );
-}
+import type { AlertRecord, ChangeRecord } from './types';
+import { NdviGrid } from './components/NdviGrid';
+import { ClassificationBar } from './components/ClassificationBar';
+import { buildClassificationBars, buildGridCells } from './utils';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
+
 
 export default function ChangeMapScreen() {
   const { fieldId, fieldName, date1, date2 } = useLocalSearchParams<{
@@ -167,76 +74,16 @@ export default function ChangeMapScreen() {
   }, [fieldId, date1, date2]);
 
   // ── Derive grid colour arrays from deltaArray ───────────────────────────────
-  const { date1Cells, date2Cells, deltaCells, stats } = useMemo(() => {
-    const total = GRID_SIZE * GRID_SIZE;
-
-    // Pad or trim to exactly 400 values
-    const raw =
-      deltaArray.length >= total
-        ? deltaArray.slice(0, total)
-        : [
-            ...deltaArray,
-            ...Array(total - deltaArray.length).fill(0),
-          ];
-
-    // Simulate baseline NDVI (Date 1) from delta:
-    //   positive delta  → the pixel was already healthy
-    //   negative delta  → the pixel is now stressed, was borderline
-    //   stable          → moderate value
-    const date1Cells = raw.map((d) => {
-      const simulatedNdvi = d >= 0 ? 0.65 : d < -0.15 ? 0.35 : 0.5;
-      return ndviColor(simulatedNdvi);
-    });
-
-    // Date 2 NDVI — apply the delta shift
-    const date2Cells = raw.map((d) => {
-      const simulatedNdvi = d >= 0 ? 0.65 + d * 0.3 : 0.35 + d * 0.6;
-      return ndviColor(Math.max(0, Math.min(1, simulatedNdvi)));
-    });
-
-    const deltaCells = raw.map(deltaColor);
-
-    // Classification stats from delta
-    const growth = raw.filter((d) => d > 0.15).length;
-    const stress = raw.filter((d) => d < -0.15).length;
-    const moderate = raw.filter((d) => Math.abs(d) >= 0.10 && Math.abs(d) <= 0.15).length;
-    const stable = raw.filter((d) => Math.abs(d) < 0.10).length;
-
-    return {
-      date1Cells,
-      date2Cells,
-      deltaCells,
-      stats: {
-        growth: (growth / total) * 100,
-        stress: (stress / total) * 100,
-        moderate: (moderate / total) * 100,
-        stable: (stable / total) * 100,
-      },
-    };
-  }, [deltaArray]);
+  const { date1Cells, date2Cells, deltaCells, stats } = useMemo(
+    () => buildGridCells(deltaArray),
+    [deltaArray],
+  );
 
   // ── Alert-based classification (overrides delta stats if data available) ────
-  const classificationBars = useMemo(() => {
-    if (alerts.length === 0) {
-      return [
-        { label: 'Crop Growth', value: stats.growth, color: '#16a34a' },
-        { label: 'Crop Stress', value: stats.stress, color: '#dc2626' },
-        { label: 'Moderate Change', value: stats.moderate, color: '#f59e0b' },
-        { label: 'Stable', value: stats.stable, color: '#475569' },
-      ];
-    }
-    const colorMap: Record<string, string> = {
-      HEALTHY: '#16a34a',
-      STRESSED: '#dc2626',
-      CRITICAL: '#f97316',
-      MODERATE: '#f59e0b',
-    };
-    return alerts.map((a) => ({
-      label: a.classification,
-      value: a.percentage,
-      color: colorMap[a.classification.toUpperCase()] ?? '#94a3b8',
-    }));
-  }, [alerts, stats]);
+  const classificationBars = useMemo(
+    () => buildClassificationBars(alerts, stats),
+    [alerts, stats],
+  );
 
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
@@ -410,7 +257,7 @@ export default function ChangeMapScreen() {
             activeOpacity={0.8}
           >
             <Text style={{ color: '#fff', fontSize: 15, fontWeight: '700', letterSpacing: 0.3 }}>
-              🔔 View Alerts for this Field
+              View Alerts for this Field
             </Text>
           </TouchableOpacity>
         </ScrollView>
