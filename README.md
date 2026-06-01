@@ -1,50 +1,70 @@
-# Satellite Change Detection
+# Satellite Change Detection Platform
 
-A microservices-based backend system that ingests satellite imagery, detects geographic changes over time, classifies those changes, and delivers real-time alerts to end users.
+A robust, event-driven microservices platform designed for agricultural produce monitoring. The system ingests satellite imagery (Sentinel-2) via Google Earth Engine, detects geographic changes over time using NDVI (Normalized Difference Vegetation Index), classifies these changes (e.g., crop stress, growth), and delivers real-time alerts to a cross-platform mobile application.
+
+For a comprehensive, in-depth dive into the technical architecture, design decisions, database schemas, and the role of Google Earth Engine, please refer to the **[PROJECT_REPORT.md](PROJECT_REPORT.md)**.
 
 ---
 
-## Services
+## 🏛️ System Architecture
 
-| Service | Description |
+The platform operates on a highly decoupled, event-driven architecture to ensure scalability and fault tolerance:
+
+- **Asynchronous Communication:** Services communicate primarily via **Apache Kafka**. For instance, the `ingestion-service` completes an image fetch and publishes to `satellite.ingest`, which is consumed by the `change-detection-service`, completely decoupling the two.
+- **Synchronous API Routing:** External clients (like the React Native app) communicate via the **API Gateway** (Spring Cloud Gateway), which routes HTTP requests to the appropriate internal services, handles CORS globally, and masks the internal network topology.
+- **Shared Data Layer:** All Java microservices securely interact with a centralized **PostgreSQL + PostGIS** database, ensuring geospatial data consistency across the ecosystem.
+
+---
+
+## 🧩 Microservices Overview
+
+*Each service has its own dedicated `README.md` with detailed API and setup instructions.*
+
+| Service / App | Description |
 |---|---|
-| `ingestion-service` | Receives and validates incoming satellite image data, publishes events to Kafka |
-| `change-detection-service` | Consumes image events and computes geographic change between images |
-| `classification-service` | Classifies detected changes (e.g. deforestation, urban expansion) |
-| `data-service` | Persists and serves geospatial data via PostGIS / Hibernate Spatial |
-| `alert-service` | Delivers push notifications via Firebase when significant changes are detected |
-| `api-gateway` | Single entry point — routes external requests to internal services via Spring Cloud Gateway |
-
-> Each service has its own `README.md` with service-specific setup and API documentation.
-
----
-
-## Tech Stack
-
-- **Java 17** · Spring Boot 3.x
-- **Spring Cloud Gateway** (API Gateway / WebFlux)
-- **Apache Kafka** (async event streaming between services)
-- **PostgreSQL + PostGIS** (geospatial data storage)
-- **Hibernate Spatial** (JPA + geometry types)
-- **Firebase Admin SDK** (push notifications)
-- **Docker** (local infrastructure — see `infra/`)
+| **`api-gateway`** | Single entry point for external clients, intelligently routing traffic to internal services. |
+| **`ingestion-service`** | Triggers Google Earth Engine to fetch satellite data and publishes Kafka events. |
+| **`change-detection-service`** | Consumes events, computes geographic changes, and orchestrates classifications. |
+| **`classification-service`** | A Python/FastAPI ML service classifying vegetation health changes. |
+| **`data-service`** | Persists and serves geospatial boundaries (Fields) and satellite passes via PostGIS. |
+| **`alert-service`** | Evaluates severity and persists alerts, publishing them to a downstream topic. |
+| **`SatelliteApp`** | The React Native (Expo) mobile client for farmers to view change maps and alerts. |
 
 ---
 
-## Prerequisites
+## 🔐 Configuration & Secrets (Future-Proofing)
+
+The platform is designed to be easily deployable to any environment (local, staging, production) without code changes. All configuration is heavily externalized.
+
+- Check out **[secrets.md](secrets.md)** for the central registry of all environment variables across the project.
+- Each Spring Boot service uses an `application.yml` that falls back to environment variables (e.g., `${DB_URL:jdbc:postgresql://localhost:5432/satdb}`).
+- This design makes the platform fully container-ready, ensuring you can securely inject database passwords, Kafka broker URIs, and GCP credentials dynamically during deployment without hardcoding sensitive data.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Prerequisites
 
 Make sure these are installed before getting started:
+- **Java 17+**
+- **Python 3.10+** (for the classification service)
+- **Node.js 18+** (for the mobile app)
+- **Docker + Docker Compose** (for local infrastructure)
+- **CMake 3.20+** (only needed once to generate the `ez` build tool)
 
-- Java 17+
-- Maven 3.8+ (or use the `./mvnw` wrapper bundled in each service)
-- CMake 3.20+ — only needed once, to generate the `ez` tool
-- Docker + Docker Compose — for running Kafka, PostgreSQL locally
+### 2. Start Local Infrastructure
 
----
+Before running the microservices, you must spin up the underlying infrastructure (PostgreSQL/PostGIS, Zookeeper, and Kafka).
 
-## Getting Started
+```bash
+cd infra/docker
+docker-compose up -d
+```
 
-### 1. Generate the `ez` developer tool
+*(This will run PostgreSQL on port `5432` and Kafka on port `9092`. The database is automatically seeded via `init.sql`).*
+
+### 3. Generate the `ez` developer tool
 
 Run this **once** from the project root:
 
@@ -54,39 +74,32 @@ cmake -S . -B build
 
 This reads `CMakeLists.txt`, stamps the service list into `ez.in`, and writes a ready-to-use `ez` script at the project root. You never need to run cmake again unless you add a new service.
 
-### 2. Start local infrastructure
+### 4. Install dependencies for all services
 
-```bash
-# Coming soon — docker-compose in infra/
-```
-
-### 3. Install dependencies for all services
+From the project root, run:
 
 ```bash
 ./ez install
 ```
 
-### 4. Run a service
+### 5. Run a service
 
 ```bash
 ./ez run -s ingestion-service
 ```
+*(You can run each service in its own terminal tab using the `ez run` command).*
 
 ---
 
-## `ez` — Developer Tool
+## 🛠️ `ez` — Developer Tool Reference
 
-`ez` is a thin CLI wrapper around Maven, generated by CMake. It lets you manage all services from the project root without `cd`-ing into each folder.
+`ez` is a thin CLI wrapper around Maven, generated by CMake. It lets you manage all Spring Boot services from the project root without `cd`-ing into each folder.
 
-### Syntax
-
-```
+**Syntax:**
+```bash
 ./ez <command> [-s <service-name>]
 ```
-
 Omit `-s` to run the command on **all services**. Provide `-s` to target **one service**.
-
-### Commands
 
 | Command | Description |
 |---|---|
@@ -97,62 +110,4 @@ Omit `-s` to run the command on **all services**. Provide `-s` to target **one s
 | `ez clean` | Delete `target/` build output |
 | `ez run -s <service>` | Start a service locally via `spring-boot:run` |
 
-### Examples
-
-```bash
-# All services
-ez install
-ez build
-ez package
-ez test
-ez clean
-
-# One service
-ez build   -s data-service
-ez package -s alert-service
-ez test    -s ingestion-service
-ez clean   -s api-gateway
-
-# Run a service (always requires -s)
-ez run -s ingestion-service
-ez run -s api-gateway
-ez run -s data-service
-```
-
-### Adding a new service
-
-Open `CMakeLists.txt` and add the service folder name to the `SERVICES` list, then re-run:
-
-```bash
-cmake -S . -B build
-```
-
-The `ez` script is regenerated automatically with the new service included.
-
----
-
-## Project Structure
-
-```
-satellite-change-detection/
-├── CMakeLists.txt          # Generates the ez tool (run cmake once)
-├── ez.in                   # ez script template (source of truth)
-├── ez                      # Generated CLI tool (gitignored)
-├── build/                  # CMake output (gitignored)
-│
-├── ingestion-service/
-├── change-detection-service/
-├── classification-service/
-├── data-service/
-├── alert-service/
-├── api-gateway/
-│
-├── infra/
-│   └── docker/             # Docker Compose for local infrastructure
-│
-└── SatelliteApp/           # Mobile client application
-```
-
----
-
-*This README will be updated as the project evolves.*
+**Adding a new service:** Open `CMakeLists.txt` and add the service folder name to the `SERVICES` list, then re-run `cmake -S . -B build`. The `ez` script is regenerated automatically.
