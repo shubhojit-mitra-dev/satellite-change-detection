@@ -2,3 +2,4 @@ build/
 ez
 target/
 secrets.*
+PROJECT*
