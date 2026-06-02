@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "755449645168",
+    "project_id": "satelliteapp-92899",
+    "storage_bucket": "satelliteapp-92899.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:755449645168:android:252e94d4e140753ff38cb5",
+        "android_client_info": {
+          "package_name": "com.satelliteapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD78al7FtyKQKDyT5Ab8iut-Rt1rf-ERP4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
